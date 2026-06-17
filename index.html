@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MEA: A Reward-Driven Multi-Agent System for Faithful Model Explanations</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:      #1c1c1e;
+      --ink2:     #3a3a3c;
+      --muted:    #636366;
+      --faint:    #aeaeb2;
+      --border:   #e5e5ea;
+      --surface:  #f5f5f7;
+      --white:    #ffffff;
+      --max:      940px;
+
+      /* single accent — warm amber-gold, used sparingly */
+      --hi:       #b45309;
+      --hi-light: #fef3c7;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--ink);
+      background: var(--white);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 99;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: var(--max); margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.5rem; height: 50px;
+    }
+    .nav-logo { font-weight: 700; font-size: 0.95rem; color: var(--ink); text-decoration: none; letter-spacing: -0.01em; }
+    .nav-links { display: flex; gap: 1.4rem; }
+    .nav-links a { font-size: 0.84rem; color: var(--muted); text-decoration: none; font-weight: 500; transition: color 0.12s; }
+    .nav-links a:hover { color: var(--ink); }
+    @media (max-width: 600px) { .nav-links { display: none; } }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(160deg, #1c1c1e 0%, #2c2c2e 100%);
+      padding: 5rem 1.5rem 4rem;
+      text-align: center;
+      color: #fff;
+    }
+    .venue-pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: rgba(255,255,255,0.8);
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      padding: 0.25rem 0.9rem; border-radius: 999px;
+      margin-bottom: 1.75rem;
+    }
+    .paper-title {
+      font-size: clamp(1.55rem, 3.2vw, 2.3rem);
+      font-weight: 700; line-height: 1.22;
+      max-width: 800px; margin: 0 auto 1.4rem;
+      letter-spacing: -0.02em;
+    }
+    .paper-title .mea { color: #fbbf24; }
+    .authors { font-size: 0.98rem; color: rgba(255,255,255,0.65); margin-bottom: 0.3rem; }
+    .affil   { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 2.2rem; }
+
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 1.15rem; border-radius: 7px;
+      font-size: 0.875rem; font-weight: 500;
+      text-decoration: none; transition: opacity 0.14s;
+    }
+    .btn:hover { opacity: 0.82; }
+    .btn-ghost {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff;
+    }
+    .btn-solid { background: #fff; color: var(--ink); }
+    .btn-amber { background: #fbbf24; color: #1c1c1e; font-weight: 600; }
+
+    /* ── Sections ── */
+    .sec { padding: 3.75rem 1.5rem; }
+    .sec.alt { background: var(--surface); }
+    .w { max-width: var(--max); margin: 0 auto; }
+
+    .sec-head {
+      display: flex; align-items: baseline; gap: 0.9rem;
+      margin-bottom: 1.75rem;
+    }
+    .sec-head h2 {
+      font-size: 1.35rem; font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .sec-head .sec-line {
+      flex: 1; height: 1px; background: var(--border);
+    }
+
+    p { color: var(--muted); font-size: 0.93rem; line-height: 1.72; }
+
+    /* ── Abstract ── */
+    .abstract-text {
+      font-size: 0.97rem;
+      line-height: 1.82;
+      color: var(--ink2);
+      padding-left: 1.2rem;
+      border-left: 3px solid var(--border);
+    }
+
+    /* ── Stats ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 2.25rem;
+    }
+    @media (max-width: 700px) { .stats-row { grid-template-columns: repeat(3,1fr); } }
+    .stat {
+      padding: 1.1rem 0.75rem; text-align: center;
+      border-right: 1px solid var(--border);
+      background: var(--white);
+    }
+    .stat:last-child { border-right: none; }
+    .stat-n { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; color: var(--ink); }
+    .stat-l { font-size: 0.74rem; color: var(--muted); margin-top: 0.2rem; line-height: 1.35; }
+
+    /* ── Method ── */
+    .agent-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.1rem; margin: 1.75rem 0 1.25rem;
+    }
+    @media (max-width: 620px) { .agent-row { grid-template-columns: 1fr; } }
+    .agent-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.3rem 1.4rem;
+    }
+    .agent-head {
+      display: flex; align-items: center; gap: 0.7rem;
+      margin-bottom: 0.9rem;
+    }
+    .agent-icon {
+      width: 2rem; height: 2rem;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .icon-amber { background: var(--hi-light); color: var(--hi); }
+    .icon-slate { background: #e2e8f0; color: #475569; }
+    .agent-card h3 { font-size: 1rem; font-weight: 600; }
+    .agent-card ul {
+      list-style: none; padding: 0;
+      display: flex; flex-direction: column; gap: 0.45rem;
+    }
+    .agent-card li {
+      display: flex; gap: 0.5rem;
+      font-size: 0.88rem; color: var(--muted); line-height: 1.5;
+    }
+    .agent-card li::before {
+      content: '—'; color: var(--faint); flex-shrink: 0; margin-top: 0.05rem;
+    }
+
+    .train-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.3rem 1.4rem;
+    }
+    .train-head {
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+    .train-head i { color: var(--hi); }
+    .train-head h3 { font-size: 1rem; font-weight: 600; }
+
+    /* ── Figure ── */
+    .fig { margin-bottom: 2rem; }
+    .fig img {
+      width: 100%; border-radius: 8px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+    .fig-cap {
+      margin-top: 0.7rem;
+      font-size: 0.82rem; color: var(--muted); line-height: 1.55;
+    }
+    .fig-cap strong { color: var(--ink2); }
+
+    /* ── Q taxonomy ── */
+    .q-section { margin-bottom: 2rem; }
+    .q-label {
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 0.85rem;
+    }
+    .q-label::after { content:''; flex:1; height:1px; background:var(--border); }
+    .q-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+      gap: 0.7rem;
+    }
+    .q-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.9rem 1rem;
+    }
+    .q-id {
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.05em; text-transform: uppercase;
+      margin-bottom: 0.35rem;
+    }
+    .q-id.attr  { color: #6d28d9; }
+    .q-id.cf    { color: #0369a1; }
+    .q-id.spur  { color: #b45309; }
+    .q-card h4  { font-size: 0.87rem; font-weight: 600; margin-bottom: 0.2rem; color: var(--ink); }
+    .q-card p   { font-size: 0.79rem; color: var(--muted); line-height: 1.45; }
+
+    /* ── Benchmark ── */
+    .bench-mods {
+      display: flex; gap: 0.9rem; margin-bottom: 1.25rem; flex-wrap: wrap;
+    }
+    .bench-mod {
+      display: flex; align-items: center; gap: 0.5rem;
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.55rem 1rem; background: var(--white);
+      font-size: 0.87rem; font-weight: 600; color: var(--ink2);
+    }
+    .bench-mod i { font-size: 0.82rem; }
+    .bench-mod.tab i { color: #15803d; }
+    .bench-mod.txt i { color: #1d4ed8; }
+    .bench-mod.vis i { color: #7e22ce; }
+
+    .bench-pills {
+      display: flex; flex-wrap: wrap; gap: 0.5rem;
+      padding: 0.9rem 1rem;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--white);
+    }
+    .pill {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; padding: 0.22rem 0.7rem;
+      font-size: 0.8rem; color: var(--ink2);
+    }
+    .pill strong { color: var(--ink); }
+
+    /* ── Results ── */
+    .rq { margin-bottom: 2.5rem; }
+    .rq-title {
+      font-size: 0.99rem; font-weight: 600;
+      margin-bottom: 0.5rem; color: var(--ink);
+    }
+    .rq-title .rq-num {
+      font-size: 0.73rem; font-weight: 700; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--muted);
+      margin-right: 0.4rem;
+    }
+    em.hi { color: var(--hi); font-style: normal; font-weight: 600; }
+
+    /* ── OOD bar chart ── */
+    .ood-chart {
+      display: flex; justify-content: center; gap: 3.5rem;
+      align-items: flex-end; margin: 1.5rem 0 0.5rem;
+      padding: 1.25rem 1.5rem 0;
+    }
+    .ood-group { display: flex; flex-direction: column; align-items: center; gap: 0.2rem; }
+    .ood-bars-row {
+      display: flex; gap: 0.55rem; align-items: flex-end;
+      height: 160px; padding-bottom: 0;
+    }
+    .ood-bar-col { display: flex; flex-direction: column; align-items: center; gap: 5px; justify-content: flex-end; }
+    .ood-bar {
+      width: 38px; border-radius: 4px 4px 0 0;
+    }
+    .ood-bar.base { background: #94a3b8; }
+    .ood-bar.mea  { background: var(--hi); }
+    .ood-val { font-size: 0.72rem; font-weight: 700; color: var(--ink2); }
+    .ood-val.mea { color: var(--hi); }
+    .ood-blabel { font-size: 0.7rem; color: var(--muted); margin-top: 6px; }
+    .ood-sep { width: 1px; height: 160px; background: var(--border); align-self: flex-end; }
+    .ood-modlabel { font-size: 0.83rem; font-weight: 600; color: var(--ink2); margin-top: 0.45rem; }
+    .ood-sublabel { font-size: 0.72rem; color: var(--muted); }
+    .ood-baseline-line {
+      width: 100%; height: 1px; background: var(--border); margin-top: 0;
+    }
+    .ood-chart-wrap {
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 1.25rem 1.5rem 1rem;
+      background: var(--white); margin-bottom: 1.5rem;
+    }
+    .ood-legend {
+      display: flex; justify-content: center; gap: 1.5rem;
+      margin-top: 0.4rem; font-size: 0.78rem; color: var(--muted);
+    }
+    .ood-legend-dot {
+      display: inline-block; width: 10px; height: 10px;
+      border-radius: 2px; margin-right: 0.3rem; vertical-align: middle;
+    }
+    .ood-chart-floor {
+      width: 100%; height: 1px; background: var(--border);
+      margin-top: 8px; margin-bottom: 6px;
+    }
+
+    /* ── BibTeX ── */
+    .bib-wrap {
+      background: #1c1c1e; border-radius: 10px;
+      padding: 1.4rem 1.5rem; position: relative;
+      overflow-x: auto;
+    }
+    .bib-wrap pre { margin: 0; color: #d4d4d8; font-family: 'Courier New', monospace; font-size: 0.83rem; line-height: 1.7; }
+    .copy-btn {
+      position: absolute; top: 0.75rem; right: 0.75rem;
+      background: #3a3a3c; color: #a1a1aa;
+      border: none; border-radius: 6px;
+      padding: 0.25rem 0.7rem; font-size: 0.75rem;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: background 0.12s;
+    }
+    .copy-btn:hover { background: #52525b; }
+
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 1.75rem 1.5rem;
+      text-align: center; font-size: 0.82rem; color: var(--faint);
+    }
+    .footer a { color: var(--muted); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">MEA</a>
+    <div class="nav-links">
+      <a href="#abstract">Abstract</a>
+      <a href="#method">Method</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="#results">Results</a>
+      <a href="#bibtex">BibTeX</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<header class="hero">
+  <h1 class="paper-title">
+    <span class="mea">MEA</span>: A Reward-Driven Multi-Agent System<br />for Faithful Model Explanations
+  </h1>
+  <p class="authors">[Authors]</p>
+  <p class="affil">[Institution]</p>
+  <div class="btn-row">
+    <a href="#" class="btn btn-ghost"><i class="fa-solid fa-file-pdf"></i> Paper</a>
+    <a href="#" class="btn btn-ghost">arXiv</a>
+    <a href="https://github.com/" class="btn btn-solid"><i class="fa-brands fa-github"></i> Code</a>
+    <a href="#benchmark" class="btn btn-amber"><i class="fa-solid fa-database"></i> MEA-Bench</a>
+  </div>
+</header>
+
+<!-- Abstract -->
+<div id="abstract" class="sec alt">
+  <div class="w">
+    <div class="sec-head"><h2>Abstract</h2><div class="sec-line"></div></div>
+    <p class="abstract-text">
+      Recent years have seen the employment of a plethora of machine learning models in high-stakes
+      domains, but they remain largely opaque to practitioners who act on their predictions.
+      While post-hoc explanation methods offer a lens into model behavior, wielding them effectively
+      demands expertise most domain experts lack. We present <strong>MEA</strong>
+      (<em>Multimodal Explainability Agent</em>), a multi-agent framework that removes the
+      explanation knowledge barrier entirely. A <strong>Proposer</strong> agent selects and
+      configures explanation tools based on the question and modality, while an
+      <strong>Actor</strong> agent is optimized end-to-end against faithfulness, transforming
+      outputs into natural-language explanations grounded in model behavior across tabular, text,
+      and vision modalities. By optimizing against faithfulness rewards augmented with a
+      modality-adaptive penalty, MEA consistently outperforms post-hoc explainers, agentic, and
+      closed-source baselines across six datasets, with reward-driven optimization yielding average
+      faithfulness gains of <strong>40%</strong>.
+    </p>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-n">+40%</div><div class="stat-l">Avg. faithfulness<br>gain over baselines</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Modalities<br>(tabular, text, vision)</div></div>
+      <div class="stat"><div class="stat-n">10</div><div class="stat-l">Question types<br>with metrics</div></div>
+      <div class="stat"><div class="stat-n">16K</div><div class="stat-l">Benchmark<br>instances</div></div>
+      <div class="stat"><div class="stat-n">12</div><div class="stat-l">Dataset–model<br>combinations</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Method -->
+<div id="method" class="sec">
+  <div class="w">
+    <div class="sec-head"><h2>Method</h2><div class="sec-line"></div></div>
+
+    <div class="fig">
+      <img src="static/images/pipeline.png" alt="MEA pipeline overview" />
+      <p class="fig-cap"><strong>Overview of MEA.</strong> The Proposer selects an explanation strategy from a multimodal toolkit; the Actor executes it and produces a structured explanation. Both agents are jointly trained via GRPO with perturbation-based faithfulness rewards.</p>
+    </div>
+
+    <div class="agent-row">
+      <div class="agent-card">
+        <div class="agent-head">
+          <div class="agent-icon icon-amber"><i class="fa-solid fa-lightbulb"></i></div>
+          <h3>Proposer Agent</h3>
+        </div>
+        <ul>
+          <li>Takes question type, input modality, and model prediction as context</li>
+          <li>Selects explanation strategy: tools, reasoning mode (autonomous / tool-based / hybrid), and subtasks</li>
+          <li>Strategy is learned from faithfulness feedback — no hand-crafted routing rules</li>
+        </ul>
+      </div>
+      <div class="agent-card">
+        <div class="agent-head">
+          <div class="agent-icon icon-slate"><i class="fa-solid fa-gears"></i></div>
+          <h3>Actor Agent</h3>
+        </div>
+        <ul>
+          <li>Runs selected XAI tools: LIME, SHAP, GradCAM, Integrated Gradients, SmoothGrad, …</li>
+          <li>Converts raw attribution outputs into structured summaries</li>
+          <li>Produces grounded explanations: bounding box (vision), token span (text), feature list (tabular)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="train-card">
+      <div class="train-head">
+        <i class="fa-solid fa-trophy"></i>
+        <h3>End-to-End Training — GRPO with Modality-Adaptive Reward</h3>
+      </div>
+      <p>
+        Both agents are fine-tuned jointly on Qwen3.6-35B-A3B via GRPO using faithfulness scores as sparse rewards.
+        A <strong>modality-adaptive penalty</strong> prevents reward hacking: bounding-box size penalty for vision
+        (λ<sub>size</sub> = 0.3) and an L1 tool-count penalty across all modalities (λ<sub>tool</sub> = 0.05).
+        The same advantage signal flows to both agents, so a misaligned strategy cannot be silently compensated.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Demo Videos -->
+<div class="sec">
+  <div class="w">
+    <div style="text-align:center; margin-bottom:1.25rem;">
+      <span style="font-size:0.75rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);">Pipeline Demo</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+      <div>
+        <p style="text-align:center; font-size:0.82rem; font-weight:600; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.06em;">Vision</p>
+        <video controls style="width:100%; border-radius:10px; border:1px solid var(--border); box-shadow:0 4px 18px rgba(0,0,0,0.07);">
+          <source src="static/images/Which%20input%20features%20were%20most%20responsible%20for%20the%20prediction%20vision.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div>
+        <p style="text-align:center; font-size:0.82rem; font-weight:600; color:var(--muted); margin-bottom:0.5rem; text-transform:uppercase; letter-spacing:0.06em;">Tabular</p>
+        <video controls style="width:100%; border-radius:10px; border:1px solid var(--border); box-shadow:0 4px 18px rgba(0,0,0,0.07);">
+          <source src="static/images/Which%20input%20features%20were%20most%20responsible%20for%20the%20prediction%20(1).mp4" type="video/mp4" />
+        </video>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Question Taxonomy -->
+<div class="sec alt">
+  <div class="w">
+    <div class="sec-head"><h2>Question Taxonomy</h2><div class="sec-line"></div></div>
+    <p style="margin-bottom:1.75rem;">Ten question types across three categories, each paired with a perturbation-based faithfulness metric. Q8–Q10 are withheld from training as OOD probes.</p>
+
+    <div class="q-section">
+      <div class="q-label">Feature Attribution — Q1–Q4</div>
+      <div class="q-grid">
+        <div class="q-card"><div class="q-id attr">Q1</div><h4>Most Responsible</h4><p>Which input region most drives the model's prediction?</p></div>
+        <div class="q-card"><div class="q-id attr">Q2</div><h4>Least Responsible</h4><p>Which region has the least influence on the prediction?</p></div>
+        <div class="q-card"><div class="q-id attr">Q3</div><h4>Distinctive Region</h4><p>What region creates the decision margin between top-1 and top-2 classes?</p></div>
+        <div class="q-card"><div class="q-id attr">Q4</div><h4>Contrastive</h4><p>Why do two instances with different predictions receive different attributions?</p></div>
+      </div>
+    </div>
+
+    <div class="q-section">
+      <div class="q-label">Counterfactual Reasoning — Q5–Q7</div>
+      <div class="q-grid">
+        <div class="q-card"><div class="q-id cf">Q5</div><h4>Direction of Change</h4><p>If a region is masked, will the model's confidence increase or decrease?</p></div>
+        <div class="q-card"><div class="q-id cf">Q6</div><h4>Decision Flip</h4><p>What modification to the input would flip the model's prediction?</p></div>
+        <div class="q-card"><div class="q-id cf">Q7</div><h4>New Class</h4><p>After removing the key region, which class would the model predict instead?</p></div>
+      </div>
+    </div>
+
+    <div class="q-section" style="margin-bottom:0;">
+      <div class="q-label">Spurious Feature Detection — Q8–Q10 &nbsp;(OOD)</div>
+      <div class="q-grid">
+        <div class="q-card"><div class="q-id spur">Q8</div><h4>Spurious Region</h4><p>Which region causes a misclassified instance to be predicted incorrectly?</p></div>
+        <div class="q-card"><div class="q-id spur">Q9</div><h4>Shared Failure</h4><p>What shared spurious feature drives misclassification across multiple instances?</p></div>
+        <div class="q-card"><div class="q-id spur">Q10</div><h4>Contrastive Spurious</h4><p>Why do two misclassified instances rely on different spurious features?</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Benchmark -->
+<div id="benchmark" class="sec">
+  <div class="w">
+    <div class="sec-head"><h2>MEA-Bench</h2><div class="sec-line"></div></div>
+    <p style="margin-bottom:1.25rem;">The first model- and modality-agnostic benchmark for agentic XAI. Each instance pairs an input sample with an automatically generated analytical prompt for one of the 10 question types, evaluated against perturbation-based faithfulness metrics.</p>
+
+    <div class="bench-mods">
+      <div class="bench-mod tab"><i class="fa-solid fa-table"></i> Tabular</div>
+      <div class="bench-mod txt"><i class="fa-solid fa-align-left"></i> Text</div>
+      <div class="bench-mod vis"><i class="fa-solid fa-image"></i> Vision</div>
+    </div>
+
+    <div class="bench-pills">
+      <span class="pill"><strong>13K</strong> training instances</span>
+      <span class="pill"><strong>3.5K</strong> test instances</span>
+      <span class="pill"><strong>10</strong> question types</span>
+      <span class="pill"><strong>12</strong> dataset–model pairs</span>
+      <span class="pill"><strong>3</strong> modalities</span>
+    </div>
+  </div>
+</div>
+
+<!-- Results -->
+<div id="results" class="sec alt">
+  <div class="w">
+    <div class="sec-head"><h2>Results</h2><div class="sec-line"></div></div>
+
+    <div class="rq">
+      <p class="rq-title"><span class="rq-num">RQ1</span>MEA improves faithfulness across all modalities</p>
+      <p style="margin-bottom:1rem;">MEA achieves the highest faithfulness scores across all three modalities and all ten question types. Tabular counterfactual: <em class="hi">0.873</em> vs. 0.670 (+30%). Vision counterfactual: <em class="hi">0.598</em> vs. 0.328 (+82%). Spurious feature detection: near-perfect (0.997 / 1.000 / 1.000).</p>
+      <div class="fig">
+        <img src="static/images/faithfulness_combined_all_modalities.png" alt="Faithfulness across modalities" />
+        <p class="fig-cap"><strong>Figure 1.</strong> Faithfulness scores of MEA vs. baselines across tabular (A), text (B), and vision (C). MEA outperforms GPT, Gemini, CoT, ToT, and ReAct.</p>
+      </div>
+    </div>
+
+    <div class="rq">
+      <p class="rq-title"><span class="rq-num">RQ2</span>MEA outperforms dedicated post-hoc explainers</p>
+      <p style="margin-bottom:1rem;">Despite being a general-purpose agent, MEA beats specialized single-purpose explainers on feature attribution (Q1): +30% tabular, +12% text, matches the best method on vision (0.499 vs. 0.497).</p>
+      <div class="fig">
+        <img src="static/images/faithfulness_tool_only_combined.png" alt="MEA vs post-hoc explainers" />
+        <p class="fig-cap"><strong>Figure 2.</strong> Feature attribution (Q1) faithfulness across tabular (A), text (B), and vision (C).</p>
+      </div>
+    </div>
+
+    <div class="rq">
+      <p class="rq-title"><span class="rq-num">RQ3</span>RL training outperforms inference-time critique</p>
+      <p style="margin-bottom:1rem;">Reflexion-style Critic at inference time cannot close the gap. Text counterfactual: Agent+Reflection 0.644 vs. MEA <em class="hi">0.876</em> (+36%). Tabular spurious: Critic degrades performance (0.514 vs. baseline 0.677); MEA reaches <em class="hi">0.997</em>. Paraphrase variants score within &lt;1% of original.</p>
+      <div class="fig">
+        <img src="static/images/ablation_three_way_comparison.png" alt="Ablation study" />
+        <p class="fig-cap"><strong>Figure 3.</strong> Base agent vs. base + Critic (Reflexion) vs. MEA across tabular (A), text (B), and vision (C).</p>
+      </div>
+    </div>
+
+    <div class="rq" style="margin-bottom:0;">
+      <p class="rq-title"><span class="rq-num">RQ4</span>MEA generalizes to OOD datasets and architectures</p>
+      <p style="margin-bottom:1rem;">Evaluated on unseen datasets and model architectures held out entirely from training. MEA consistently improves over the base agent: tabular <em class="hi">+53%</em>, vision <em class="hi">+29%</em>, text <em class="hi">+10%</em> overall faithfulness gain.</p>
+
+      <!-- OOD bar chart -->
+      <div class="ood-chart-wrap">
+        <div class="ood-chart">
+          <!-- Tabular -->
+          <div class="ood-group">
+            <div class="ood-bars-row">
+              <div class="ood-bar-col">
+                <span class="ood-val">0.379</span>
+                <div class="ood-bar base" style="height:61px"></div>
+                <span class="ood-blabel">Baseline</span>
+              </div>
+              <div class="ood-bar-col">
+                <span class="ood-val mea">0.581</span>
+                <div class="ood-bar mea" style="height:93px"></div>
+                <span class="ood-blabel">MEA</span>
+              </div>
+            </div>
+            <div class="ood-chart-floor"></div>
+            <div class="ood-modlabel">Tabular</div>
+            <div class="ood-sublabel">German Credit</div>
+          </div>
+
+          <!-- Text -->
+          <div class="ood-group">
+            <div class="ood-bars-row">
+              <div class="ood-bar-col">
+                <span class="ood-val">0.625</span>
+                <div class="ood-bar base" style="height:100px"></div>
+                <span class="ood-blabel">Baseline</span>
+              </div>
+              <div class="ood-bar-col">
+                <span class="ood-val mea">0.689</span>
+                <div class="ood-bar mea" style="height:110px"></div>
+                <span class="ood-blabel">MEA</span>
+              </div>
+            </div>
+            <div class="ood-chart-floor"></div>
+            <div class="ood-modlabel">Text</div>
+            <div class="ood-sublabel">Yelp Polarity</div>
+          </div>
+
+          <!-- Vision -->
+          <div class="ood-group">
+            <div class="ood-bars-row">
+              <div class="ood-bar-col">
+                <span class="ood-val">0.448</span>
+                <div class="ood-bar base" style="height:72px"></div>
+                <span class="ood-blabel">Baseline</span>
+              </div>
+              <div class="ood-bar-col">
+                <span class="ood-val mea">0.576</span>
+                <div class="ood-bar mea" style="height:92px"></div>
+                <span class="ood-blabel">MEA</span>
+              </div>
+            </div>
+            <div class="ood-chart-floor"></div>
+            <div class="ood-modlabel">Vision</div>
+            <div class="ood-sublabel">CIFAR-10</div>
+          </div>
+        </div>
+        <div class="ood-legend">
+          <span><span class="ood-legend-dot" style="background:#94a3b8"></span>Baseline (base agent)</span>
+          <span><span class="ood-legend-dot" style="background:var(--hi)"></span>MEA (ours)</span>
+        </div>
+      </div>
+
+      <div class="fig" style="margin-bottom:0;">
+        <img src="static/images/ood_comparison.png" alt="OOD generalization by question group" />
+        <p class="fig-cap"><strong>Figure 4.</strong> OOD faithfulness per question group — Feature Attribution, Counterfactual Reasoning, Spurious Feature Detection — across three modalities.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Case Study -->
+<div class="sec">
+  <div class="w">
+    <div class="sec-head"><h2>Case Study</h2><div class="sec-line"></div></div>
+    <p style="margin-bottom:1.25rem;">End-to-end pipeline executions across representative samples from each modality.</p>
+    <div class="fig" style="margin-bottom:0;">
+      <img src="static/images/case_study.png" alt="MEA case study" />
+      <p class="fig-cap"><strong>Figure 5.</strong> Each column shows a complete MEA execution: input, Proposer's strategy, Actor's output, and faithfulness evaluation.</p>
+    </div>
+  </div>
+</div>
+
+<!-- BibTeX -->
+<div id="bibtex" class="sec alt">
+  <div class="w">
+    <div class="sec-head"><h2>BibTeX</h2><div class="sec-line"></div></div>
+    <div class="bib-wrap" id="bib">
+      <button class="copy-btn" onclick="copyBib()">Copy</button>
+<pre>@inproceedings{mea2025,
+  title     = {{MEA}: A Reward-Driven Multi-Agent System for
+               Faithful Model Explanations},
+  author    = {[Authors]},
+  booktitle = {Proceedings of the 63rd Annual Meeting of the
+               Association for Computational Linguistics (ACL)},
+  year      = {2025},
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+  MEA &nbsp;·&nbsp;
+  Template adapted from <a href="https://github.com/eliahuhorwitz/Academic-project-page-template" target="_blank">Academic Project Page Template</a>
+</footer>
+
+<script>
+function copyBib() {
+  const pre = document.querySelector('#bib pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+</script>
+
+</body>
+</html>
