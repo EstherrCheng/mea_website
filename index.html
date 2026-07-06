@@ -709,7 +709,7 @@
 <script>
 (function() {
   const FIG1 = {
-    maxH:130, barW:11, barGap:2, groupGap:12, scale:1.0, showVals:false,
+    maxH:130, barW:8, barGap:1, groupGap:10, scale:1.0, showVals:false,
     legend:[
       {label:'Base Agent',       color:'#4C72B0'},
       {label:'GPT-5.4',          color:'#DD8452'},
@@ -818,6 +818,7 @@
         const barsDiv = document.createElement('div');
         barsDiv.className = 'mc-bars';
         barsDiv.style.gap = barGap + 'px';
+        barsDiv.style.height = (maxH + (showVals ? 20 : 0)) + 'px';
 
         for (let i = 0; i < grp.vals.length; i++) {
           const val = grp.vals[i];
