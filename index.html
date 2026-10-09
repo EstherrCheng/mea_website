@@ -147,7 +147,7 @@
     /* ── Stats ── */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 0;
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -391,13 +391,13 @@
   <h1 class="paper-title">
     <span class="mea">MEA</span>: A Reward-Driven Multi-Agent System<br />for Faithful Model Explanations
   </h1>
-  <p class="authors">[Authors]</p>
-  <p class="affil">[Institution]</p>
+  <p class="authors">Yuyang Cheng<sup>1</sup>, Raghav Kaushik Ravi<sup>2</sup>, Srivarshinee Sridhar<sup>2</sup>, Sriparna Saha<sup>3</sup>, Akash Ghosh<sup>3</sup>, Chirag Agarwal<sup>1</sup></p>
+  <p class="affil"><sup>1</sup>University of Virginia &nbsp;·&nbsp; <sup>2</sup>Vellore Institute of Technology &nbsp;·&nbsp; <sup>3</sup>Indian Institute of Technology, Patna</p>
   <div class="btn-row">
-    <a href="#" class="btn btn-ghost"><i class="fa-solid fa-file-pdf"></i> Paper</a>
-    <a href="#" class="btn btn-ghost">arXiv</a>
-    <a href="https://github.com/" class="btn btn-solid"><i class="fa-brands fa-github"></i> Code</a>
-    <a href="#benchmark" class="btn btn-amber"><i class="fa-solid fa-database"></i> MEA-Bench</a>
+    <a href="https://arxiv.org/pdf/2610.02480" class="btn btn-ghost"><i class="fa-solid fa-file-pdf"></i> Paper</a>
+    <a href="https://arxiv.org/abs/2610.02480" class="btn btn-ghost">arXiv</a>
+    <a href="https://github.com/AikyamLab/xai-agent" class="btn btn-solid"><i class="fa-brands fa-github"></i> Code</a>
+    <a href="https://huggingface.co/datasets/EstherrrCheng/mea-benchmark" class="btn btn-amber"><i class="fa-solid fa-database"></i> MEA-Bench</a>
   </div>
 </header>
 
@@ -406,23 +406,32 @@
   <div class="w">
     <div class="sec-head"><h2>Abstract</h2><div class="sec-line"></div></div>
     <p class="abstract-text">
-      Recent years have seen the employment of a plethora of machine learning models in high-stakes
-      domains, but they remain largely opaque to practitioners who act on their predictions.
-      While post-hoc explanation methods offer a lens into model behavior, wielding them effectively
-      demands expertise most domain experts lack. We present <strong>MEA</strong>
-      (<em>Multimodal Explainability Agent</em>), a multi-agent framework that removes the
-      explanation knowledge barrier entirely. A <strong>Proposer</strong> agent selects and
-      configures explanation tools based on the question and modality, while an
-      <strong>Actor</strong> agent is optimized end-to-end against faithfulness, transforming
-      outputs into natural-language explanations grounded in model behavior across tabular, text,
-      and vision modalities. By optimizing against faithfulness rewards augmented with a
-      modality-adaptive penalty, MEA consistently outperforms post-hoc explainers, agentic, and
-      closed-source baselines across six datasets, with reward-driven optimization yielding average
-      faithfulness gains of <strong>40%</strong>.
+      Recent years have seen the employment of a plethora of machine learning (ML) models in
+      high-stakes domains, but they remain largely opaque to the practitioners who act on their
+      predictions. While post-hoc explanation methods offer a lens into this model behavior,
+      wielding them effectively demands expertise most domain experts lack: navigating
+      high-dimensional outputs, selecting the best explanations, and synthesizing evidence across
+      disparate tools. To this end, we present <strong>MEA</strong>, a multi-agent framework that
+      removes the explanation knowledge barrier entirely: a <strong>Proposer</strong> agent selects
+      and configures explanation tools based on the question and modality, while an
+      <strong>Actor</strong> agent is optimized end-to-end against faithfulness, transforming the
+      outputs into natural language explanations grounded in model behavior across tabular, text,
+      and vision modalities. Further, we introduce diverse question types spanning feature
+      attribution, counterfactual reasoning, and spurious feature detection, each paired with a
+      perturbation-based faithfulness metric. We find that frontier LLMs systematically produce
+      unfaithful explanations. By optimizing against faithfulness rewards augmented with a
+      modality-adaptive penalty, MEA consistently outperforms post hoc explainers, agentic, and
+      closed-source baselines across six datasets, with reward-driven optimization yielding
+      faithfulness gains of <strong>+28%</strong> (tabular), <strong>+21%</strong> (text), and
+      <strong>+34%</strong> (vision) over the untrained backbone. More broadly, our findings suggest
+      that AI agents themselves can serve as a scalable, adaptable interface to ML explainability,
+      opening a path toward natural-language explainability that generalizes beyond the fixed,
+      single-purpose tools that have long defined the field.
     </p>
     <div class="stats-row">
-      <div class="stat"><div class="stat-n">+40%</div><div class="stat-l">Avg. faithfulness<br>gain over baselines</div></div>
-      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Modalities<br>(tabular, text, vision)</div></div>
+      <div class="stat"><div class="stat-n">+28%</div><div class="stat-l">Faithfulness gain<br>(tabular)</div></div>
+      <div class="stat"><div class="stat-n">+21%</div><div class="stat-l">Faithfulness gain<br>(text)</div></div>
+      <div class="stat"><div class="stat-n">+34%</div><div class="stat-l">Faithfulness gain<br>(vision)</div></div>
       <div class="stat"><div class="stat-n">10</div><div class="stat-l">Question types<br>with metrics</div></div>
       <div class="stat"><div class="stat-n">16.5K</div><div class="stat-l">Benchmark<br>instances</div></div>
       <div class="stat"><div class="stat-n">12</div><div class="stat-l">Dataset–model<br>combinations</div></div>
@@ -688,13 +697,18 @@
     <div class="sec-head"><h2>BibTeX</h2><div class="sec-line"></div></div>
     <div class="bib-wrap" id="bib">
       <button class="copy-btn" onclick="copyBib()">Copy</button>
-<pre>@inproceedings{mea2025,
-  title     = {{MEA}: A Reward-Driven Multi-Agent System for
-               Faithful Model Explanations},
-  author    = {[Authors]},
-  booktitle = {Proceedings of the 63rd Annual Meeting of the
-               Association for Computational Linguistics (ACL)},
-  year      = {2025},
+<pre>@article{cheng2026mea,
+  title         = {{MEA}: A Reward-Driven Multi-Agent System for
+                   Faithful Model Explanations},
+  author        = {Cheng, Yuyang and Ravi, Raghav Kaushik and
+                   Sridhar, Srivarshinee and Saha, Sriparna and
+                   Ghosh, Akash and Agarwal, Chirag},
+  journal       = {arXiv preprint arXiv:2610.02480},
+  year          = {2026},
+  eprint        = {2610.02480},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.AI},
+  url           = {https://arxiv.org/abs/2610.02480}
 }</pre>
     </div>
   </div>
